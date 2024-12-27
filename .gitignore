@@ -1,0 +1,6 @@
+# virtual environment 
+venvclone/
+
+cloneblog/__pycache__/
+
+db.sqlite3
