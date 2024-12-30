@@ -11,78 +11,89 @@ from .forms import RoomForm
 
 # Create your views here.
 
+
 def loginPage(request):
 
-    page= 'login'
+    page = "login"
 
     if request.user.is_authenticated:
-        return redirect('home')
+        return redirect("home")
 
-
-    if request.method == 'POST':
-        username = request.POST.get('username').lower()
-        password = request.POST.get('password')
+    if request.method == "POST":
+        username = request.POST.get("username").lower()
+        password = request.POST.get("password")
 
         try:
             user = User.objects.get(username=username)
         except:
-            messages.error(request, 'User does not exist.')
+            messages.error(request, "User does not exist.")
 
         user = authenticate(request, username=username, password=password)
 
         if user is not None:
             login(request, user)
-            return redirect('home')
-        else:
-            messages.error(request, 'Username or Password does not exist.')
+            return redirect("home")
+        messages.error(request, "Username or Password does not exist.")
 
-    context = {'page': page}
-    return render(request, 'blog/login_register.html', context)
+    context = {"page": page}
+    return render(request, "blog/login_register.html", context)
+
 
 def logoutUser(request):
     logout(request)
-    return redirect('home')
+    return redirect("home")
+
 
 def registerPage(request):
     form = UserCreationForm
-    context = {'form': form}
+    context = {"form": form}
 
-    if request.method == 'POST':
+    if request.method == "POST":
         form = UserCreationForm(request.POST)
         if form.is_valid():
             user = form.save(commit=False)
             user.username = user.username.lower()
             user.save()
             login(request, user)
-            return redirect('home')
-        else:
-            messages.error(request, 'An error occured during registration!!!')
+            return redirect("home")
+        messages.error(request, "An error occured during registration!!!")
 
-    return render(request, 'blog/login_register.html', context)
+    return render(request, "blog/login_register.html", context)
 
 
 def home(request):
     q = request.GET.get("q") if request.GET.get("q") != None else ""
 
     rooms = Room.objects.filter(
-        Q(topic__name__icontains=q) |
-        Q(name__icontains=q) |
-        Q(description__icontains=q)
+        Q(topic__name__icontains=q) | Q(name__icontains=q) | Q(description__icontains=q)
     )
 
     topics = Topic.objects.all()
     room_count = rooms.count()
 
-    context = {"rooms": rooms, "topics": topics, 'room_count': room_count}
+    context = {"rooms": rooms, "topics": topics, "room_count": room_count}
     return render(request, "blog/home.html", context)
 
 
 def room(request, pk):
     room = Room.objects.get(id=pk)
-    context = {"room": room}
+    room_messages = room.message_set.all()
+
+    if request.method == 'POST':
+        message = Message.objects.create(
+            user=request.user,
+            room=room,
+            body=request.POST.get('body')
+        )
+        room.participants.add()
+        return redirect('room', pk=room.id)
+
+    participants = room.participants.all()
+    context = {"room": room, 'room_messages': room_messages, 'participants': participants}
     return render(request, "blog/room.html", context)
 
-@login_required(login_url='login')
+
+@login_required(login_url="login")
 def createRoom(request):
     form = RoomForm()
     if request.method == "POST":
@@ -95,13 +106,13 @@ def createRoom(request):
     return render(request, "blog/room_form.html", context)
 
 
-@login_required(login_url='login')
+@login_required(login_url="login")
 def updateRoom(request, pk):
     room = Room.objects.get(id=pk)
     form = RoomForm(instance=room)
 
     if request.user != room.host:
-        return HttpResponse('You cannot edit this room!!!')
+        return HttpResponse("You cannot edit this room!!!")
 
     if request.method == "POST":
         form = RoomForm(request.POST, instance=room)
@@ -113,15 +124,29 @@ def updateRoom(request, pk):
     return render(request, "blog/room_form.html", context)
 
 
-@login_required(login_url='login')
+@login_required(login_url="login")
 def deleteRoom(request, pk):
     room = Room.objects.get(id=pk)
+
+    if request.user != room.host:
+        return HttpResponse("You cannot delete this room!!!")
 
     if request.method == "POST":
         room.delete()
         return redirect("home")
 
-    if request.user != room.host:
-        return HttpResponse('You cannot delete this room!!!')
-
     return render(request, "blog/delete.html", {"obj": room})
+
+
+@login_required(login_url="login")
+def deleteMessage(request, pk):
+    message = Message.objects.get(id=pk)
+
+    if request.user != message.user:
+        return HttpResponse("You cannot delete this message!!!")
+
+    if request.method == "POST":
+        message.delete()
+        return redirect("home")
+
+    return render(request, "blog/delete.html", {"obj": message})
