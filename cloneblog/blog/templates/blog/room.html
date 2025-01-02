@@ -31,18 +31,18 @@
         <input type="text" name="body" placeholder="Write your message here...">
       </form>
     </div>
+    {% endif %}
   </div>
   <div>
     <h3>Participants</h3>
     <hr>
     {% for user in participants %}
     <div>
-      <p>@{{user.username}}
+      <p><a href="{% url 'user-profile' user.id %}">@{{user.username}}</a></p>
     </div>
 
     {% endfor %}
   </div>
 </div>
 
-{% endif %}
 {% endblock content %}

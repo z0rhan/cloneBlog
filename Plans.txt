@@ -1,3 +1,9 @@
 This is just me learning and nothing is original
 Also the git history is going to be terrible as I'm still learning
 Thank you
+
+Now this might be the last commit 
+The tutorial I was following is almost done with django and is now focusing on applying it
+to a ready-made theme which I don't want to do.
+I'll be applying what I've learned to a new project and I'll be doing it on my own.
+Also, I need to catch up with CSS and JS.
