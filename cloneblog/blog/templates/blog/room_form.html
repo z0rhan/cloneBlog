@@ -1,10 +1,21 @@
 {% extends "index.html" %}
 {% block content %}
+<div>
+  <form method="POST" action="">
+    {% csrf_token %}
     <div>
-        <form method="POST" action="">
-            {% csrf_token %}
-            {{ form }}
-            <input type="submit" value="Submit">
-        </form>
+      <label for="room_topic">Topic:</label>
+      <input type="text" name="topic" list="topic-list" value="{{room.topic.name}}" required>
     </div>
+    <div>
+      <label for="room_name">Room Name:</label>
+      {{ form.name }}
+    </div>
+    <div>
+      <label for="room_description">Room Description:</label>
+      {{ form.description }}
+    </div>
+    <input type="submit" value="Submit">
+  </form>
+</div>
 {% endblock content %}
